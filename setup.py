@@ -15,14 +15,14 @@ extensions = [
 
 setup(
     name="PyRut",
-    version="1.0.2",
+    version="1.0.3",
     description="High-performance Chilean RUT validation & formatting (Cython)",
     long_description=here.joinpath("README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     author="Bastian Garcia",
     author_email="bastiang@uc.cl",
     url="https://github.com/cve-zh00/PyRut",
-    packages=find_packages(),            # <–– detecta 'pyrut'
+    packages=find_packages(),      
     ext_modules=cythonize(extensions),
     classifiers=[
         "Programming Language :: Python :: 3",
