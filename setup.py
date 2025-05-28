@@ -21,7 +21,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Bastian Garcia",
     author_email="bastiang@uc.cl",
-    url="https://github.com/yourusername/PyRut",
+    url="https://github.com/cve-zh00/PyRut",
     packages=find_packages(),            # <–– detecta 'pyrut'
     ext_modules=cythonize(extensions),
     classifiers=[
