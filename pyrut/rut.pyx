@@ -9,6 +9,7 @@ from libc.stdlib cimport free
 from cpython.unicode cimport PyUnicode_FromStringAndSize
 from libc.string cimport strlen
 
+
 cpdef bint validate_rut(str input_rut):
     """
     Valida un solo RUT (str) y devuelve True/False.
