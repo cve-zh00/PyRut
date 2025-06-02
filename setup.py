@@ -6,7 +6,7 @@ here = pathlib.Path(__file__).parent
 
 extensions = [
     Extension(
-        "py_rut",
+        "pyrut",
         sources=["pyrut/rut.pyx"],
         extra_compile_args=["-O3", "-march=native"],
         language="c"

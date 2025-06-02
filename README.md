@@ -18,7 +18,7 @@ Below are examples demonstrating the functions provided by the 'rut' module.
 
 ### Validating a RUT
 
-    from py_rut import validate_rut
+    from pyrut import validate_rut
 
     # Validate RUT using the Cython implementation
     if validate_rut("210496157"):
@@ -28,7 +28,7 @@ Below are examples demonstrating the functions provided by the 'rut' module.
 
 ### Formatting a RUT
 
-    from py_rut import format_rut
+    from pyrut import format_rut
 
     # Format the RUT string (e.g., "21049615-7" to "21.049.615-7")
     formatted_rut = format_rut("21049615-7", dots=True)
@@ -36,11 +36,24 @@ Below are examples demonstrating the functions provided by the 'rut' module.
 
 ### Computing the Verification Digit
 
-    from py_rut import verification_digit
+    from pyrut import verification_digit
 
     # Calculate the verification digit for a given RUT number
     digit = verification_digit("21049615")
     print("Verification Digit:", digit)
+
+
+### Using Type
+
+    from fastapi import FastAPI
+    from pyrut.types import Rut
+
+    app = FastAPI()
+
+    @app.get("/persona-c/{rut}")
+    async def root(rut: Rut):
+        return {"message": "Hello World", "rut": rut}
+
 
 ## Documentation
 
