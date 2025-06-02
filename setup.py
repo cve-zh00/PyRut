@@ -22,7 +22,7 @@ setup(
     author="Bastian Garcia",
     author_email="bastiang@uc.cl",
     url="https://github.com/cve-zh00/PyRut",
-    packages=find_packages(),      
+    packages=find_packages(),
     ext_modules=cythonize(extensions),
     classifiers=[
         "Programming Language :: Python :: 3",

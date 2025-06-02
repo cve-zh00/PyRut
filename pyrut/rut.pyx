@@ -16,6 +16,7 @@ cpdef bint validate_rut(str input_rut):
     cdef bytes b = input_rut.encode('utf-8')
     cdef char *data = PyBytes_AsString(b)
     cdef bint result = _validate_rut(data)
+
     return result
 
 
@@ -203,8 +204,7 @@ cdef inline char compute_dv(char *s, size_t body_len) nogil:
     else:
         return <char>(48 + m)
 
-cdef inline char* clean_rut(char* src) :
-    cdef char *dst = src
+cdef inline void clean_rut(const char* src, char* dst) nogil:
     cdef char c
     while True:
         c = src[0]
@@ -218,26 +218,28 @@ cdef inline char* clean_rut(char* src) :
             dst[0] = b'K'
             dst += 1
         elif c == b'.' or c == b'-' or c == b' ':
-            # ignorar separadores
             continue
         else:
-            return b''
-
+            # carácter inválido, limpiar salida
+            dst[0] = b'\0'
+            return
     dst[0] = b'\0'
 
-    return dst
-
 cdef bint _validate_rut(char *s):
-    cdef char *src = s
-    cdef char *dst = clean_rut(s)
+    cdef const char *src = s
+    cdef char cleaned[99]  # Buffer de salida, tamaño suficiente para un RUT
+    clean_rut(src, cleaned)
 
-    if dst == b'':
+    # Verifica si el resultado quedó vacío (fallo por carácter inválido)
+    if cleaned[0] == b'\0':
         return False
-    # Longitud mínima: al menos un dígito + DV
-    cdef size_t length = <size_t>(dst - s)
+
+    # Longitud del RUT limpio
+    cdef size_t length = strlen(cleaned)
     if length < 2:
         return False
 
     # Validación del dígito verificador
-    cdef char expected = compute_dv(s, length - 1)
-    return s[length - 1] == expected
+    cdef char expected = compute_dv(cleaned, length - 1)
+
+    return cleaned[length - 1] == expected
