@@ -1,6 +1,4 @@
-# distutils: language = c
-# cython: language_level=3, boundscheck=False, wraparound=False, cdivision=True, infer_types=True
-
+# cython: language_level=3, boundscheck=False, wraparound=False, infer_types=True
 from libc.stdint cimport uint16_t, uint8_t, uint64_t
 from libc.stddef cimport size_t
 from libc.stdlib cimport malloc, free
@@ -9,9 +7,9 @@ from libc.stdlib cimport free
 from cpython.unicode cimport PyUnicode_FromStringAndSize, PyUnicode_AsUTF8String
 from libc.string cimport strlen
 
-from cpython.list cimport PyList_New, PyList_Append, PyList_GET_SIZE, PyList_GET_ITEM
+from cpython.list cimport PyList_GET_SIZE
 
-import time
+
 cdef inline char* encode(str r) noexcept:
     cdef:
         bytes b = PyUnicode_AsUTF8String(r)
@@ -42,8 +40,6 @@ cpdef list validate_list_ruts(list ruts, bint suspicious=False):
             ruts[i] = False
 
     return ruts
-
-
 
 cpdef validate_rut_string(str v, bint suspicious=False):
     cdef:

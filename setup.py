@@ -16,7 +16,7 @@ extensions = [
 
 setup(
     name="PyRut",
-    version="1.0.8",
+    version="1.0.9",
     description="High-performance Chilean RUT validation & formatting (Cython)",
     long_description=here.joinpath("README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
