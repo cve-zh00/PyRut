@@ -1,5 +1,5 @@
 # distutils: language = c
-# cython: language_level=3, boundscheck=False, wraparound=False, cdivision=True
+# cython: language_level=3, boundscheck=False, wraparound=False, cdivision=True, infer_types=True
 
 from libc.stdint cimport uint16_t, uint8_t, uint64_t
 from libc.stddef cimport size_t
@@ -9,16 +9,30 @@ from libc.stdlib cimport free
 from cpython.unicode cimport PyUnicode_FromStringAndSize
 from libc.string cimport strlen
 
+cdef inline char* encode(str r):
+    cdef:
+        bytes b = r.encode('utf-8')
+        char *data = PyBytes_AsString(b)
+    return data
 
-cpdef bint validate_rut(str input_rut):
+cpdef bint validate_rut(str input_rut, bint suspicious=False):
     """
     Valida un solo RUT (str) y devuelve True/False.
     """
-    cdef bytes b = input_rut.encode('utf-8')
-    cdef char *data = PyBytes_AsString(b)
-    cdef bint result = _validate_rut(data)
+    cdef char* data = encode(input_rut)
+    cdef bint result = _validate_rut(data, suspicious)
 
     return result
+
+
+cpdef validate_rut_string(str v):
+    cdef:
+        char* data = encode(v)
+        bint result = _validate_rut(data, suspicious)
+    if result:
+        return v
+    else:
+        raise ValueError(f"Invalid RUT: {v}")
 
 
 cpdef str format_rut(str rut, bint dots=True, bint uppercase=True, bint ignore_invalid=False):
@@ -31,7 +45,6 @@ cpdef str format_rut(str rut, bint dots=True, bint uppercase=True, bint ignore_i
     cdef str result = formatted_rut.decode('utf-8')
     free(formatted_rut)
     return result
-
 
 
 cdef char* format_rut_c(const char* rut,
@@ -65,7 +78,6 @@ cdef char* format_rut_c(const char* rut,
 
     body_len = total_valid - 1
 
-    #    forzar mayúscula vía bitmasking (más rápida que rama)
     if uppercase:
         dv_char &= 0xDF  # convierte 'k' a 'K' si procede
 
@@ -111,6 +123,7 @@ cdef char* format_rut_c(const char* rut,
     dst[0] = b'\0'
 
     return out
+
 
 cdef inline uint8_t compute_dv_from_int(uint64_t body) nogil:
     """
@@ -183,7 +196,6 @@ cpdef str verification_digit(rut):
     else:
         raise TypeError(f"Tipo no válido: {type(rut).__name__}")
 
-
 cdef inline char compute_dv(char *s, size_t body_len) nogil:
     cdef uint16_t total = 0
     cdef uint16_t m
@@ -226,7 +238,35 @@ cdef inline void clean_rut(const char* src, char* dst) nogil:
             return
     dst[0] = b'\0'
 
-cdef bint _validate_rut(char *s):
+
+cdef inline bint is_suspicious(char* s) nogil:
+    """
+    Devuelve True si todos los caracteres en s (hasta '\0')
+    son iguales entre sí. Si la cadena está vacía (s[0] == '\0'),
+    se considera que cumple (devuelve True).
+    """
+    cdef char first = s[0]
+    cdef char c
+
+    # Si la cadena está vacía, asumimos que "todos los caracteres son iguales"
+    if first == b'\0':
+        return True
+
+    # Avanzamos un puntero para comparar el resto
+    s += 1
+    while True:
+        c = s[0]
+        if c == b'\0':
+            break
+        if c != first:
+            return False
+        s += 1
+
+    return True
+
+
+
+cdef bint _validate_rut(char *s, bint suspicious):
     cdef const char *src = s
     cdef char cleaned[99]  # Buffer de salida, tamaño suficiente para un RUT
     clean_rut(src, cleaned)
@@ -240,7 +280,10 @@ cdef bint _validate_rut(char *s):
     if length < 2:
         return False
 
-    # Validación del dígito verificador
+    if suspicious:
+        if is_suspicious(cleaned):
+            return False
+
     cdef char expected = compute_dv(cleaned, length - 1)
 
     return cleaned[length - 1] == expected
