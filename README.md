@@ -26,6 +26,16 @@ Below are examples demonstrating the functions provided by the 'rut' module.
     else:
         print("Invalid RUT")
 
+### Using Suspicious RUT
+
+    from pyrut import validate_rut
+
+    # Validate RUT using the Cython implementation
+    if validate_rut("210496157", suspicious=true):
+        print("Valid RUT")
+    else:
+        print("Invalid RUT")
+
 ### Formatting a RUT
 
     from pyrut import format_rut
@@ -64,7 +74,7 @@ Detailed module documentation is available in the docs directory. See docs/index
 Unit tests are located in the tests directory. Run them using a testing framework like pytest:
 
     pytest pyrut/tests
-    
+
 
 
 ## Contributing

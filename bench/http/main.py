@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pyrut.types import RutStr
+from pyrut.types import Rut
 from itertools import cycle
 from pydantic import BeforeValidator
 from typing import Annotated
@@ -34,7 +34,7 @@ app = FastAPI()
 RutPy = Annotated[str, BeforeValidator(validar_rut)]
 
 @app.get("/persona-c/{rut}")
-async def rutcython(rut: RutStr):
+async def rutcython(rut: Rut):
     return {"message": "Hello World", "rut": rut}
 
 @app.get("/persona-p/{rut}")
