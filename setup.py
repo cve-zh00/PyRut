@@ -6,16 +6,17 @@ here = pathlib.Path(__file__).parent
 
 extensions = [
     Extension(
-        "pyrut",
+        "pyrut.rut",
         sources=["pyrut/rut.pyx"],
         extra_compile_args=["-O3", "-march=native"],
-        language="c"
+        language="c",
+
     ),
 ]
 
 setup(
     name="PyRut",
-    version="1.0.6",
+    version="1.0.8",
     description="High-performance Chilean RUT validation & formatting (Cython)",
     long_description=here.joinpath("README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
@@ -32,4 +33,5 @@ setup(
     ],
     python_requires=">=3.8",
     zip_safe=False,
+
 )

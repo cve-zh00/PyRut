@@ -6,12 +6,15 @@ from libc.stddef cimport size_t
 from libc.stdlib cimport malloc, free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_AsStringAndSize
 from libc.stdlib cimport free
-from cpython.unicode cimport PyUnicode_FromStringAndSize
+from cpython.unicode cimport PyUnicode_FromStringAndSize, PyUnicode_AsUTF8String
 from libc.string cimport strlen
 
-cdef inline char* encode(str r):
+from cpython.list cimport PyList_New, PyList_Append, PyList_GET_SIZE, PyList_GET_ITEM
+
+import time
+cdef inline char* encode(str r) noexcept:
     cdef:
-        bytes b = r.encode('utf-8')
+        bytes b = PyUnicode_AsUTF8String(r)
         char *data = PyBytes_AsString(b)
     return data
 
@@ -21,14 +24,32 @@ cpdef bint validate_rut(str input_rut, bint suspicious=False):
     """
     cdef char* data = encode(input_rut)
     cdef bint result = _validate_rut(data, suspicious)
-
     return result
+
+cpdef list validate_list_ruts(list ruts, bint suspicious=False):
+    """
+    Valida una lista de RUTs (list) y devuelve una lista de True/False.
+    """
+    cdef:
+        Py_ssize_t len_list = PyList_GET_SIZE(ruts)
+        bint is_valid
+
+    for i in range(len_list):
+
+        rut = encode(ruts[i])
+        is_valid = _validate_rut(rut, suspicious)
+        if not is_valid:
+            ruts[i] = False
+
+    return ruts
+
 
 
 cpdef validate_rut_string(str v, bint suspicious=False):
     cdef:
         char* data = encode(v)
         bint result = _validate_rut(data, suspicious)
+
     if result:
         return v
     else:
@@ -39,8 +60,7 @@ cpdef str format_rut(str rut, bint dots=True, bint uppercase=True, bint ignore_i
     """
     Formatea un RUT (str) con puntos y guión.
     """
-    cdef bytes b = rut.encode('utf-8')
-    cdef char *data = PyBytes_AsString(b)
+    cdef data = encode(rut)
     cdef char *formatted_rut = format_rut_c(data, dots, uppercase, ignore_invalid)
     cdef str result = formatted_rut.decode('utf-8')
     free(formatted_rut)
@@ -196,7 +216,7 @@ cpdef str verification_digit(rut):
     else:
         raise TypeError(f"Tipo no válido: {type(rut).__name__}")
 
-cdef inline char compute_dv(char *s, size_t body_len) nogil:
+cdef inline char compute_dv(char *s, size_t body_len) noexcept nogil:
     cdef uint16_t total = 0
     cdef uint16_t m
     cdef int mul = 2
@@ -217,7 +237,7 @@ cdef inline char compute_dv(char *s, size_t body_len) nogil:
     else:
         return <char>(48 + m)
 
-cdef inline void clean_rut(const char* src, char* dst) nogil:
+cdef inline void clean_rut(const char* src, char* dst) noexcept nogil:
     cdef char c
     while True:
         c = src[0]
@@ -239,7 +259,7 @@ cdef inline void clean_rut(const char* src, char* dst) nogil:
     dst[0] = b'\0'
 
 
-cdef inline bint is_suspicious(char* s) nogil:
+cdef inline bint is_suspicious(char* s) noexcept nogil:
     """
     Devuelve True si todos los caracteres en s (hasta '\0')
     son iguales entre sí. Si la cadena está vacía (s[0] == '\0'),
@@ -266,9 +286,10 @@ cdef inline bint is_suspicious(char* s) nogil:
 
 
 
-cdef bint _validate_rut(char *s, bint suspicious):
+cdef bint _validate_rut(char *s, bint suspicious) noexcept nogil:
     cdef const char *src = s
     cdef char cleaned[99]  # Buffer de salida, tamaño suficiente para un RUT
+    cdef bint valid = True
     clean_rut(src, cleaned)
 
     # Verifica si el resultado quedó vacío (fallo por carácter inválido)
@@ -281,7 +302,8 @@ cdef bint _validate_rut(char *s, bint suspicious):
         return False
 
     if suspicious:
-        if is_suspicious(cleaned):
+        valid = is_suspicious(cleaned)
+        if not valid:
             return False
 
     cdef char expected = compute_dv(cleaned, length - 1)
