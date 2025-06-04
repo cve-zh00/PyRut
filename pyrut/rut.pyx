@@ -49,14 +49,14 @@ cpdef validate_rut_string(str v, bint suspicious=False):
     if result:
         return v
     else:
-        raise ValueError(f"Invalid RUT: {v}")
+        raise ValueError("Invalid RUT")
 
 
 cpdef str format_rut(str rut, bint dots=True, bint uppercase=True, bint ignore_invalid=False):
     """
     Formatea un RUT (str) con puntos y guión.
     """
-    cdef data = encode(rut)
+    cdef char *data = encode(rut)
     cdef char *formatted_rut = format_rut_c(data, dots, uppercase, ignore_invalid)
     cdef str result = formatted_rut.decode('utf-8')
     free(formatted_rut)
@@ -66,7 +66,7 @@ cpdef str format_rut(str rut, bint dots=True, bint uppercase=True, bint ignore_i
 cdef char* format_rut_c(const char* rut,
                         bint dots,
                         bint uppercase,
-                        bint ignore_invalid):
+                        bint ignore_invalid)noexcept nogil:
     cdef const char* p = rut
     cdef char c, dv_char = 0
     cdef Py_ssize_t total_valid = 0
@@ -74,11 +74,11 @@ cdef char* format_rut_c(const char* rut,
     cdef char* out
     cdef char* dst
     cdef Py_ssize_t ndots = 0
-
+    cdef size_t len_rut = strlen(rut)
     # ——————————————
     # 1) Primer pase: contar dígitos + capturar DV
     # ——————————————
-    for i in range(strlen(rut)):
+    for i in range(len_rut):
         c = p[i]
         if b'0' <= c <= b'9' or c == b'K' or c == b'k':
             dv_char = c
@@ -113,7 +113,7 @@ cdef char* format_rut_c(const char* rut,
     dst = out
     total_valid = 0  # reusar como contador de dígitos emitidos
 
-    for i in range(strlen(rut)):
+    for i in range(len_rut):
         c = p[i]
         if b'0' <= c <= b'9' or c == b'K' or c == b'k':
             if total_valid < body_len:
@@ -189,34 +189,30 @@ cpdef str verification_digit(rut):
     Acepta `rut` como str (sin DV) o como int (sin DV).
     """
     cdef char *data
-    cdef Py_ssize_t length
     cdef int dv
-    cdef bytes b
+    cdef char *b
 
     if isinstance(rut, str):
         # 1) codifica a bytes y extrae buffer + longitud
-        b = rut.encode('utf-8')
-        if PyBytes_AsStringAndSize(b, &data, &length) != 0:
-            raise ValueError("Error al codificar RUT a bytes")
+        b = encode(rut)
         # 2) calcula DV sobre la cadena
-        dv = compute_dv(data, <size_t>length)
+        dv = compute_dv(b)
 
         return _verification_digit_from_int(dv)
 
     elif isinstance(rut, int):
         # 3) convierte el entero a uint64_t y calcula DV
         dv = compute_dv_from_int(<uint64_t>rut)
-
         return _verification_digit_from_int(dv)
 
     else:
         raise TypeError(f"Tipo no válido: {type(rut).__name__}")
 
-cdef inline char compute_dv(char *s, size_t body_len) noexcept nogil:
+cdef inline char compute_dv(char *s) noexcept nogil:
     cdef uint16_t total = 0
     cdef uint16_t m
     cdef int mul = 2
-    cdef size_t i = body_len
+    cdef size_t i = strlen(s)
     # recorrer de derecha a izquierda sin usar range
     while i > 0:
         i -= 1
@@ -302,6 +298,6 @@ cdef bint _validate_rut(char *s, bint suspicious) noexcept nogil:
         if not valid:
             return False
 
-    cdef char expected = compute_dv(cleaned, length - 1)
+    cdef char expected = compute_dv(cleaned)
 
     return cleaned[length - 1] == expected
