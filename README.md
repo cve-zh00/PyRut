@@ -52,6 +52,14 @@ Below are examples demonstrating the functions provided by the 'rut' module.
     digit = verification_digit("21049615")
     print("Verification Digit:", digit)
 
+### Using list of RUTs
+
+    from pyrut import  validate_list_ruts
+
+    # Validate a list of RUTs using the Cython implementation
+    ruts = ["11111111-1"] * 10000
+    valid_ruts = validate_list_ruts(ruts, suspicious=True)
+    print("Valid RUTs:", valid_ruts)
 
 ### Using Type
 
