@@ -60,9 +60,14 @@ Below are examples demonstrating the functions provided by the 'rut' module.
 
     app = FastAPI()
 
-    @app.get("/persona-c/{rut}")
+    @app.get("/person/{rut}")
     async def root(rut: Rut):
         return {"message": "Hello World", "rut": rut}
+
+    @app.get("/person/{not-suspicious-rut}")
+    async def root(rut: RutNotSuspicious):
+        return {"message": "Hello World", "rut": rut}
+
 
 
 ## Documentation
