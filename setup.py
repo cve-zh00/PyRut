@@ -2,6 +2,7 @@ from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import pathlib
 
+
 here = pathlib.Path(__file__).parent
 
 extensions = [
@@ -10,13 +11,12 @@ extensions = [
         sources=["pyrut/rut.pyx"],
         extra_compile_args=["-O3", "-march=native"],
         language="c",
-
     ),
 ]
 
 setup(
     name="PyRut",
-    version="1.0.9",
+    version="1.1.0",
     description="High-performance Chilean RUT validation & formatting (Cython)",
     long_description=here.joinpath("README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
