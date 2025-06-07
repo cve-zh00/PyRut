@@ -33,10 +33,10 @@ app = FastAPI()
 
 RutPy = Annotated[str, BeforeValidator(validar_rut)]
 
-@app.get("/persona-c/{rut}")
+@app.get("/person/{rut}")
 async def rutcython(rut: Rut):
     return {"message": "Hello World", "rut": rut}
 
-@app.get("/persona-p/{rut}")
+@app.get("/person/{rut}")
 async def rutpython(rut: RutPy):
     return {"message": "Hello World", "rut": rut}
