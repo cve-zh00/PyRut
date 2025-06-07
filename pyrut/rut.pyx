@@ -322,7 +322,7 @@ cdef inline bint is_suspicious(char* s) noexcept nogil:
 
 cdef bint _validate_rut(char *s, bint suspicious) :
     cdef const char *src = s
-    cdef char cleaned[20]  # Buffer de salida, tamaño suficiente para un RUT
+    cdef char cleaned[50]  # Buffer de salida, tamaño suficiente para un RUT
     cdef bint valid = True
     cdef char dv
     clean_rut(src, cleaned)
