@@ -28,6 +28,7 @@ cpdef bint validate_rut(str input_rut, bint suspicious=False):
     """
     cdef char* data = encode(input_rut)
     cdef bint result = _validate_rut(data, suspicious)
+    
     return result
 
 
@@ -52,7 +53,6 @@ cpdef validate_rut_string(str v, bint suspicious=False):
     cdef:
         char* data = encode(v)
         bint result = _validate_rut(data, suspicious)
-
     if result:
         return v
     else:

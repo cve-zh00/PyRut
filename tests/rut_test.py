@@ -213,7 +213,7 @@ class TestPydanticTypes:
             rut: Rut
 
         valid_ruts = [
-            "11.111.111-8",
+            "11.111.111-1",
             "12345678-5",
             "7654321-6"
         ]
